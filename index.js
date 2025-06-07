@@ -111,7 +111,7 @@ function displayPDF(file) {
 
                 const renderPage = (pageNum) => {
                     return pdf.getPage(pageNum).then((page) => {
-                        const viewport = page.getViewport({ scale: 0.6 });
+                        const viewport = page.getViewport({ scale: 1.3 });
                         const scale = screenHeight / viewport.height;
                         const scaledViewport = page.getViewport({ scale });
 
@@ -221,3 +221,27 @@ inputSearch.addEventListener("change", (e) => {
         scrollToInput(currentFileIndex);
     }
 });
+
+document
+    .getElementById("CountPages")
+    .addEventListener("click", async function (event) {
+        if (pdfFiles.length === 0) return;
+
+        const pageCounts = await countPages();
+
+        const inputs = inputsContainer.querySelectorAll("input[type=text]");
+        inputs.forEach((input, index) => {
+            input.value = `${pageCounts[index]}`;
+        });
+    });
+
+async function countPages() {
+    const results = [];
+    for (let i = 0; i < pdfFiles.length; i++) {
+        const file = pdfFiles[i];
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        results.push(pdf.numPages);
+    }
+    return results;
+}
