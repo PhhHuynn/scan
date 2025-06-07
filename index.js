@@ -5,7 +5,7 @@ const fileNameDisplay = document.getElementById("fileName");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 const inputsContainer = document.getElementById("inputsContainer");
-
+const inputSearch = document.getElementById("searchFile");
 document
     .getElementById("pdfUpload")
     .addEventListener("change", function (event) {
@@ -16,13 +16,21 @@ document
             pdfFiles.forEach((file, index) => {
                 const wrapper = document.createElement("div");
                 wrapper.className = "input-wrapper";
+                wrapper.style.display = "flex";
+                wrapper.style.alignItems = "center";
+                wrapper.style.gap = "10px";
 
+                // Số thứ tự
                 const label = document.createElement("label");
                 label.textContent = `#${index + 1}`;
 
+                // Ô input
                 const input = document.createElement("input");
                 input.type = "text";
                 input.dataset.index = index;
+                input.style.flex = "1";
+
+                // Khi nhấn Enter: chuyển sang file tiếp theo
                 input.addEventListener("keydown", function (e) {
                     if (e.key === "Enter") {
                         e.preventDefault();
@@ -35,8 +43,15 @@ document
                     }
                 });
 
+                // ✅ Checkbox
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.className = "done-checkbox";
+                checkbox.title = "Không áp dụng start/end with";
+
                 wrapper.appendChild(label);
                 wrapper.appendChild(input);
+                wrapper.appendChild(checkbox);
                 inputsContainer.appendChild(wrapper);
             });
 
@@ -60,7 +75,6 @@ nextBtn.addEventListener("click", () => {
     if (currentFileIndex < pdfFiles.length - 1) {
         currentFileIndex++;
         displayPDF(pdfFiles[currentFileIndex]);
-        updateButtons();
         scrollToInput(currentFileIndex);
     }
 });
@@ -73,57 +87,98 @@ function updateButtons() {
     fileLink.textContent = currentFile.name;
     fileLink.href = fileURL;
 
+    // Chỉ bật nút nếu không ở đầu/cuối danh sách
     prevBtn.disabled = currentFileIndex === 0;
     nextBtn.disabled = currentFileIndex === pdfFiles.length - 1;
 }
 
 function displayPDF(file) {
+    pdfViewer.innerHTML = "<p>Đang tải PDF...</p>";
+
     const fileReader = new FileReader();
     fileReader.onload = function () {
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        inputSearch.disabled = true;
+
         const typedarray = new Uint8Array(this.result);
-        pdfjsLib.getDocument(typedarray).promise.then(function (pdf) {
-            pdfViewer.innerHTML = ""; // Clear cũ
+        pdfjsLib
+            .getDocument(typedarray)
+            .promise.then(function (pdf) {
+                pdfViewer.innerHTML = "";
 
-            const screenHeight = window.innerHeight - 60;
+                const screenHeight = window.innerHeight - 60;
 
-            const renderPage = (pageNum) => {
-                return pdf.getPage(pageNum).then((page) => {
-                    const viewport = page.getViewport({ scale: 1 });
-                    const scale = screenHeight / viewport.height;
-                    const scaledViewport = page.getViewport({ scale });
+                const renderPage = (pageNum) => {
+                    return pdf.getPage(pageNum).then((page) => {
+                        const viewport = page.getViewport({ scale: 0.6 });
+                        const scale = screenHeight / viewport.height;
+                        const scaledViewport = page.getViewport({ scale });
 
-                    const canvas = document.createElement("canvas");
-                    const context = canvas.getContext("2d");
-                    canvas.width = scaledViewport.width;
-                    canvas.height = scaledViewport.height;
+                        const canvas = document.createElement("canvas");
+                        const context = canvas.getContext("2d");
+                        canvas.width = scaledViewport.width;
+                        canvas.height = scaledViewport.height;
 
-                    return page
-                        .render({
-                            canvasContext: context,
-                            viewport: scaledViewport,
-                        })
-                        .promise.then(() => {
-                            pdfViewer.appendChild(canvas);
-                        });
+                        return page
+                            .render({
+                                canvasContext: context,
+                                viewport: scaledViewport,
+                            })
+                            .promise.then(() => {
+                                pdfViewer.appendChild(canvas);
+                            });
+                    });
+                };
+
+                // Render tất cả các trang PDF
+                const renderPromises = [];
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    renderPromises.push(renderPage(i));
+                }
+
+                return Promise.all(renderPromises).then(() => {
+                    // Bật lại nút điều hướng sau khi render xong
+                    updateButtons();
+                    inputSearch.disabled = false;
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                 });
-            };
-
-            // Render tất cả các trang
-            const renderPromises = [];
-            for (let i = 1; i <= pdf.numPages; i++) {
-                renderPromises.push(renderPage(i));
-            }
-
-            return Promise.all(renderPromises);
-        });
+            })
+            .catch(function (err) {
+                pdfViewer.innerHTML =
+                    "<p style='color:red;'>Không thể hiển thị file PDF này.</p>";
+                console.error("Lỗi khi hiển thị PDF:", err);
+            });
     };
+
     fileReader.readAsArrayBuffer(file);
 }
 
+function XoaInput() {
+    const inputs = inputsContainer.querySelectorAll("input[type='text']");
+    inputs.forEach((i) => (i.value = ""));
+}
+
 function Copy() {
-    const values = [...inputsContainer.querySelectorAll("input")].map((input) =>
-        input.value.trim()
-    );
+    const values = [
+        ...document.querySelectorAll("#inputsContainer .input-wrapper"),
+    ].map((wrapper) => {
+        const input = wrapper.querySelector('input[type="text"]');
+        const checkbox = wrapper.querySelector(".done-checkbox");
+        let value = input.value.trim();
+
+        // Chỉ sao chép nếu checkbox được tick
+        if (!checkbox.checked) {
+            return (
+                document.getElementById("startWith").value +
+                input.value.trim() +
+                document.getElementById("endWith").value
+            );
+        }
+
+        return value;
+    });
+
     const combinedText = values.join("\n");
     navigator.clipboard.writeText(combinedText).then(() => {
         alert("Đã sao chép nội dung:\n\n" + combinedText);
@@ -134,3 +189,35 @@ function scrollToInput(index) {
     const input = inputsContainer.querySelector(`input[data-index="${index}"]`);
     if (input) input.focus();
 }
+
+const resizer = document.getElementById("resizer");
+const box = document.getElementById("inputsContainer");
+
+resizer.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+
+    function onMouseMove(e) {
+        const newWidth = box.getBoundingClientRect().right - e.clientX;
+        if (newWidth > 250) {
+            box.parentElement.style.width = newWidth + "px";
+        }
+    }
+
+    function onMouseUp() {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+    }
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+});
+
+inputSearch.addEventListener("change", (e) => {
+    const index = parseInt(e.target.value);
+    if (!isNaN(index) && index >= 1 && index <= pdfFiles.length) {
+        currentFileIndex = index - 1;
+        displayPDF(pdfFiles[currentFileIndex]);
+        updateButtons();
+        scrollToInput(currentFileIndex);
+    }
+});

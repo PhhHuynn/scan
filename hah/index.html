@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Đếm số trang PDF (copy dán Excel)</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+        <style>
+            body {
+                font-family: sans-serif;
+                padding: 20px;
+            }
+            textarea {
+                width: 300px;
+                height: 200px;
+                font-size: 16px;
+                white-space: pre;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Đếm số trang PDF (copy được dán vào Excel)</h2>
+        <input type="file" id="file-input" multiple accept="application/pdf" />
+        <p><strong>Kết quả:</strong> (Chọn và copy để dán vào Excel)</p>
+        <textarea id="output" readonly onclick="this.select()"></textarea>
+
+        <script>
+            document
+                .getElementById("file-input")
+                .addEventListener("change", function (event) {
+                    const output = document.getElementById("output");
+                    output.value = "";
+                    const files = Array.from(event.target.files);
+                    const results = [];
+
+                    let processed = 0;
+
+                    files.forEach((file) => {
+                        const reader = new FileReader();
+                        reader.onload = function () {
+                            const typedarray = new Uint8Array(reader.result);
+
+                            pdfjsLib
+                                .getDocument({ data: typedarray })
+                                .promise.then((pdf) => {
+                                    const match =
+                                        file.name.match(/\.([\d]+)\.pdf$/i);
+                                    const sortKey = match
+                                        ? parseInt(match[1], 10)
+                                        : 0;
+
+                                    results.push({
+                                        sortKey,
+                                        pages: pdf.numPages,
+                                    });
+                                    processed++;
+                                    if (processed === files.length) {
+                                        results.sort(
+                                            (a, b) => a.sortKey - b.sortKey
+                                        );
+                                        output.value = results
+                                            .map((r) => r.pages)
+                                            .join("\n");
+                                    }
+                                })
+                                .catch(() => {
+                                    processed++;
+                                    if (processed === files.length) {
+                                        results.sort(
+                                            (a, b) => a.sortKey - b.sortKey
+                                        );
+                                        output.value = results
+                                            .map((r) => r.pages)
+                                            .join("\n");
+                                    }
+                                });
+                        };
+                        reader.readAsArrayBuffer(file);
+                    });
+                });
+        </script>
+    </body>
+</html>

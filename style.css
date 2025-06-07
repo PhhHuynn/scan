@@ -4,12 +4,37 @@ body {
     background-color: #f4f4f4;
 }
 
+button {
+    padding: 5px;
+}
+
 h2 {
     margin-bottom: 10px;
 }
 
+input {
+    padding: 6px;
+    border-radius: 4px;
+}
+
 input[type="file"] {
     padding: 10px;
+}
+
+#searchFile {
+    width: 50px;
+}
+
+.input-wrapper input[type="text"] {
+    border: 1px solid #ccc;
+
+    flex: 1;
+}
+
+.done-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
 }
 
 .controls {
@@ -21,7 +46,8 @@ input[type="file"] {
 
 .main-view {
     display: flex;
-    height: 80vh;
+    justify-content: space-between;
+    height: 78vh;
     gap: 10px;
     overflow: hidden;
 }
@@ -36,8 +62,17 @@ input[type="file"] {
     scroll-behavior: smooth;
 }
 
+.resizer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 100%;
+    cursor: ew-resize;
+    background-color: transparent;
+}
+
 .inputs {
-    width: 500px;
     background-color: #fff;
     border: 1px solid #ccc;
     overflow-y: auto;
@@ -57,7 +92,25 @@ input[type="file"] {
     min-width: 30px;
 }
 
-.input-wrapper input {
-    flex: 1;
+.option {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: space-between;
+}
+
+.option .item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+}
+
+.option label {
+    width: 80px;
+}
+
+.option input {
     padding: 5px;
+    padding-right: 0;
+    flex: 1;
 }

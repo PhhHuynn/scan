@@ -8,33 +8,80 @@
     </head>
     <body style="margin: 0 50px">
         <h2>Tải lên nhiều file PDF</h2>
-        <div style="display: flex; align-items: center">
-            <input
-                type="file"
-                id="pdfUpload"
-                accept="application/pdf"
-                multiple
-            />
-            <br /><br />
+        <div
+            style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            "
+        >
+            <div style="display: flex; align-items: center">
+                <input
+                    type="file"
+                    id="pdfUpload"
+                    accept="application/pdf"
+                    multiple
+                />
+                <br /><br />
 
-            <div class="controls">
-                <button id="prevBtn" disabled>← Trước</button>
-                <a
-                    id="fileLink"
-                    href="#"
-                    target="_blank"
-                    style="text-decoration: none; color: inherit"
-                    >Không có file</a
-                >
-                <button id="nextBtn" disabled>Tiếp →</button>
+                <div class="controls">
+                    <button id="prevBtn" disabled>← Trước</button>
+                    <a
+                        id="fileLink"
+                        href="#"
+                        target="_blank"
+                        style="text-decoration: none; color: inherit"
+                        >Không có file</a
+                    >
+                    <input type="text" id="searchFile" />
+                    <button id="nextBtn" disabled>Tiếp →</button>
+                </div>
             </div>
+            <button
+                style="
+                    justify-self: end;
+                    background-color: rgb(156, 3, 3);
+                    color: white;
+                "
+                onclick="XoaInput()"
+            >
+                Xóa nội dung
+            </button>
         </div>
 
         <!-- Viewer + Inputs side-by-side -->
         <div class="main-view">
             <div id="pdfViewer"></div>
-            <div style="display: flex; flex-direction: column; gap: 10px">
+            <div
+                style="
+                    display: flex;
+                    position: relative;
+                    flex-direction: column;
+                    gap: 10px;
+                    box-sizing: border-box;
+                "
+            >
+                <div class="resizer" id="resizer"></div>
                 <div class="inputs" id="inputsContainer"></div>
+                <div class="option">
+                    <div class="item">
+                        <label>Start with: </label>
+                        <input
+                            type="text"
+                            placeholder="Bắt đầu với"
+                            id="startWith"
+                        />
+                    </div>
+                    <div class="item">
+                        <label>End with:</label>
+                        <input
+                            type="text"
+                            placeholder="Kết thúc với"
+                            id="endWith"
+                        />
+                    </div>
+                </div>
+
                 <button onclick="Copy()">Sao chép</button>
             </div>
         </div>
