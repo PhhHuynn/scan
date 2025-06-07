@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Nhập liệu</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body style="margin: 0 50px">
+        <h2>Tải lên nhiều file PDF</h2>
+        <div style="display: flex; align-items: center">
+            <input
+                type="file"
+                id="pdfUpload"
+                accept="application/pdf"
+                multiple
+            />
+            <br /><br />
+
+            <div class="controls">
+                <button id="prevBtn" disabled>← Trước</button>
+                <a
+                    id="fileLink"
+                    href="#"
+                    target="_blank"
+                    style="text-decoration: none; color: inherit"
+                    >Không có file</a
+                >
+                <button id="nextBtn" disabled>Tiếp →</button>
+            </div>
+        </div>
+
+        <!-- Viewer + Inputs side-by-side -->
+        <div class="main-view">
+            <div id="pdfViewer"></div>
+            <div style="display: flex; flex-direction: column; gap: 10px">
+                <div class="inputs" id="inputsContainer"></div>
+                <button onclick="Copy()">Sao chép</button>
+            </div>
+        </div>
+
+        <script src="index.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    </body>
+</html>
